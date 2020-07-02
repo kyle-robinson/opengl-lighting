@@ -1,0 +1,38 @@
+{
+	"configurations" : 
+	[
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"projectIndex" : 0,
+					"source" : "."
+				}
+			],
+			"name" : "Debug",
+			"projects" : 
+			[
+				{
+					"directoryIndexes" : 
+					[
+						0
+					],
+					"name" : "Project"
+				}
+			],
+			"targets" : []
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "D:/OneDrive - Staffordshire University/GitHub/Games-and-Graphical-Systems/OpenGL Tutorials/GLFW_Instancing/External/GLM/out/build/x64-Debug (default)",
+		"source" : "D:/OneDrive - Staffordshire University/GitHub/Games-and-Graphical-Systems/OpenGL Tutorials/GLFW_Instancing/External/GLM"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 0
+	}
+}
