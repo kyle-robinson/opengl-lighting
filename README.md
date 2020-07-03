@@ -9,4 +9,4 @@ Complete collection of projects relating to lighting in OpenGL, according to the
 - [x] Normal Mapping
 - [x] Parallax Mapping
 - [x] Shadows
-- [ ] SSAO
+- [x] SSAO
