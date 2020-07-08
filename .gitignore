@@ -338,3 +338,11 @@ ASALocalRun/
 
 # BeatPulse healthcheck temp database
 healthchecksdb
+/GLFW_PBR/res/skyboxes/Shiodome_Stairs
+/GLFW_PBR/res/skyboxes/Ridgecrest_Road
+/GLFW_PBR/res/skyboxes/Barcelona_Rooftops
+/GLFW_PBR/res/textures/gold_scuffed
+/GLFW_PBR/res/textures/limestone
+/GLFW_PBR/res/textures/plastic
+/GLFW_PBR/res/textures/snow
+/GLFW_PBR/res/textures/titanium_scuffed
