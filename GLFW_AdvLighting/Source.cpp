@@ -144,29 +144,43 @@ int main()
 		//std::cout << (gammaEnabled ? "Gamma Enabled" : "Gamma Disabled") << std::endl;
 
 		// ImGui Window
-		ImGui::Begin("Main Window");
+		ImGui::Begin("Main Window", NULL, ImGuiWindowFlags_AlwaysAutoResize);
 		{
 			static int gammaInt = 0;
-			ImGui::Text("Gamma Correction");
-			if (ImGui::RadioButton("Disabled", &gammaInt, 0))
-				gammaEnabled = false;
-			ImGui::SameLine();
-			if (ImGui::RadioButton("Enabled", &gammaInt, 1))
-				gammaEnabled = true;
-
-			ImGui::NewLine();
-
 			static int lightInt = 0;
-			ImGui::Text("Specular Model");
-			if (ImGui::RadioButton("Phong", &lightInt, 0))
-				blinn = false;
-			ImGui::SameLine();
-			if (ImGui::RadioButton("Blinn", &lightInt, 1))
-				blinn = true;
+			if (ImGui::CollapsingHeader("Lighting"))
+			{
+				ImGui::Text("Gamma Correction");
+				if (ImGui::RadioButton("Disabled", &gammaInt, 0))
+					gammaEnabled = false;
+				ImGui::SameLine();
+				if (ImGui::RadioButton("Enabled", &gammaInt, 1))
+					gammaEnabled = true;
+				
+				ImGui::Text("Specular Model");
+				if (ImGui::RadioButton("Phong", &lightInt, 0))
+					blinn = false;
+				ImGui::SameLine();
+				if (ImGui::RadioButton("Blinn", &lightInt, 1))
+					blinn = true;
+			}
 
-			ImGui::NewLine();
+			if (ImGui::CollapsingHeader("Application Info"))
+			{
+				ImGui::Text("OpenGL Version: %s", glGetString(GL_VERSION));
+				ImGui::Text("Shader Version: %s", glGetString(GL_SHADING_LANGUAGE_VERSION));
+				ImGui::Text("Hardware: %s", glGetString(GL_RENDERER));
+				ImGui::NewLine();
+				ImGui::Text("Frametime: %.3f / Framerate: (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+			}
 
-			ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+			if (ImGui::CollapsingHeader("About"))
+			{
+				ImGui::Text("Blinn-Phong Lighting Demo by Kyle Robinson");
+				ImGui::NewLine();
+				ImGui::Text("Email: kylerobinson456@outlook.com");
+				ImGui::Text("Twitter: @KyleRobinson42");
+			}
 		}
 		ImGui::End();
 		ImGui::Render();
@@ -196,7 +210,7 @@ GLFWwindow* InitWindow()
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-	GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "GLFW Project", NULL, NULL);
+	GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Blinn-Phong Lighting", NULL, NULL);
 	if (window == NULL)
 	{
 		std::cout << "Failed to create GLFW window." << std::endl;
