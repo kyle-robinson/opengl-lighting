@@ -293,44 +293,50 @@ int main()
 		std::cout << "Bloom: " << (bloom ? "on" : "off") << " | Exposure: " << exposure << std::endl;
 
 		// ImGui Window
-		ImGui::Begin("Main Window");
+		ImGui::Begin("Main Window", NULL, ImGuiWindowFlags_AlwaysAutoResize);
 		{
-			if (ImGui::TreeNode("Bloom"))
+			static int e = 0;
+			if (ImGui::CollapsingHeader("Bloom"))
 			{
-				ImGui::Indent();
-				
-				static int e = 0;
 				if (ImGui::RadioButton("Enable", &e, 0))
 					bloom = true;
 				ImGui::SameLine();
 				if (ImGui::RadioButton("Disable", &e, 1))
 					bloom = false;
-				ImGui::SliderFloat("Threshold", &threshold, 0.0f, 2.0f, "%.1f");
 
-				ImGui::Unindent();
-				ImGui::TreePop();
+				ImGui::SliderFloat("Threshold", &threshold, 0.0f, 2.0f, "%.1f");
 			}
 
-			if (ImGui::TreeNode("Lighting"))
+			static int d = 0;
+			if (ImGui::CollapsingHeader("Lighting"))
 			{
-				ImGui::Indent();
-
-				ImGui::SliderFloat("Exposure", &exposure,  0.0f, 2.0f, "%.1f");
+				ImGui::SliderFloat("Exposure", &exposure, 0.0f, 2.0f, "%.1f");
 				ImGui::SliderFloat("Intensity", &intensity, 0.0f, 10.0f, "%1.f");
-				
+
 				ImGui::Text("Disco");
-				static int d = 0;
 				if (ImGui::RadioButton("Enable", &d, 0))
 					disco = true;
 				ImGui::SameLine();
 				if (ImGui::RadioButton("Disable", &d, 1))
 					disco = false;
-
-				ImGui::Unindent();
-				ImGui::TreePop();
 			}
 
-			ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+			if (ImGui::CollapsingHeader("Application Info"))
+			{
+				ImGui::Text("OpenGL Version: %s", glGetString(GL_VERSION));
+				ImGui::Text("Shader Version: %s", glGetString(GL_SHADING_LANGUAGE_VERSION));
+				ImGui::Text("Hardware: %s", glGetString(GL_RENDERER));
+				ImGui::NewLine();
+				ImGui::Text("Frametime: %.3f / Framerate: (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+			}
+
+			if (ImGui::CollapsingHeader("About"))
+			{
+				ImGui::Text("Bloom Demo by Kyle Robinson");
+				ImGui::NewLine();
+				ImGui::Text("Email: kylerobinson456@outlook.com");
+				ImGui::Text("Twitter: @KyleRobinson42");
+			}
 		}
 		ImGui::End();
 		ImGui::Render();
@@ -371,7 +377,7 @@ GLFWwindow* InitWindow()
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-	GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "GLFW Project", NULL, NULL);
+	GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Bloom / Blur Framebuffer", NULL, NULL);
 	if (window == NULL)
 	{
 		std::cout << "Failed to create GLFW window." << std::endl;
