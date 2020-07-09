@@ -226,10 +226,29 @@ int main()
 		}
 
 		// ImGui Window
-		ImGui::Begin("Main Window");
+		ImGui::Begin("Main Window", NULL, ImGuiWindowFlags_AlwaysAutoResize);
 		{
-			ImGui::SliderFloat("Radius", &offset, 0.0f, 1.5f, "%.1f");
-			ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+			if (ImGui::CollapsingHeader("Lighting"))
+			{
+				ImGui::SliderFloat("Radius", &offset, 0.0f, 1.5f, "%.1f");
+			}
+
+			if (ImGui::CollapsingHeader("Application Info"))
+			{
+				ImGui::Text("OpenGL Version: %s", glGetString(GL_VERSION));
+				ImGui::Text("Shader Version: %s", glGetString(GL_SHADING_LANGUAGE_VERSION));
+				ImGui::Text("Hardware: %s", glGetString(GL_RENDERER));
+				ImGui::NewLine();
+				ImGui::Text("Frametime: %.3f / Framerate: (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+			}
+
+			if (ImGui::CollapsingHeader("About"))
+			{
+				ImGui::Text("Deferred Shading Demo by Kyle Robinson");
+				ImGui::NewLine();
+				ImGui::Text("Email: kylerobinson456@outlook.com");
+				ImGui::Text("Twitter: @KyleRobinson42");
+			}
 		}
 		ImGui::End();
 		ImGui::Render();
@@ -269,7 +288,7 @@ GLFWwindow* InitWindow()
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-	GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "GLFW Project", NULL, NULL);
+	GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Deferred Shading", NULL, NULL);
 	if (window == NULL)
 	{
 		std::cout << "Failed to create GLFW window." << std::endl;
