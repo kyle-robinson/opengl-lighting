@@ -10,3 +10,4 @@ Complete collection of projects relating to lighting in OpenGL, according to the
 - [x] Parallax Mapping
 - [x] Shadows
 - [x] SSAO
+- [x] PBR
