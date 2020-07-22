@@ -68,7 +68,7 @@ void main()
 	vec3 normal = texture(normalMap, fs_in.TexCoords).rgb;
 	normal = normalize(normal * 2.0 - 1.0);
 
-	vec3 ambient = 0.3 * color;
+	vec3 ambient = 0.9 * color;
 	vec3 lighting = ambient;
 
 	vec3 lightDir = normalize(fs_in.TangentLightPos - fs_in.TangentFragPos);

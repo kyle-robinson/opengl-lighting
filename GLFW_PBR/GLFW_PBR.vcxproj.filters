@@ -83,6 +83,9 @@
     <ClInclude Include="..\External\IMGUI\stb_truetype.h">
       <Filter>Resource Files\ImGui</Filter>
     </ClInclude>
+    <ClInclude Include="ft2build.h">
+      <Filter>Resource Files\Source</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="res\shaders\PBR.shader">

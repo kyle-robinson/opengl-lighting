@@ -6,9 +6,9 @@ layout(location = 2) in vec3 aNormal;
 
 out VS_OUT
 {
+	vec2 TexCoords;
 	vec3 WorldPos;
 	vec3 Normal;
-	vec2 TexCoords;
 } vs_out;
 
 uniform mat4 projection;
@@ -17,9 +17,10 @@ uniform mat4 model;
 
 void main()
 {
-	vs_out.WorldPos = vec3(model * vec4(aPos, 1.0));
-	vs_out.Normal = transpose(inverse(mat3(model))) * aNormal;
 	vs_out.TexCoords = aTexCoords;
+	vs_out.WorldPos = vec3(model * vec4(aPos, 1.0));
+	//vs_out.Normal = transpose(inverse(mat3(model))) * aNormal;
+	vs_out.Normal = mat3(model) * aNormal;
 	gl_Position = projection * view * model * vec4(aPos, 1.0);
 };
 
@@ -29,9 +30,9 @@ out vec4 FragColor;
 
 in VS_OUT
 {
+	vec2 TexCoords;
 	vec3 WorldPos;
 	vec3 Normal;
-	vec2 TexCoords;
 } fs_in;
 
 // Material sample textures
@@ -42,12 +43,13 @@ uniform sampler2D roughnessMap;
 uniform sampler2D aoMap;
 
 // Material parameters
-//uniform vec3 albedo;
-//uniform float metallic;
-//uniform float roughness;
+uniform vec3 albedoF;
+uniform float metallicF;
+uniform float roughnessF;
 uniform float aoF;
 
 uniform bool aoTexture;
+uniform bool texture_none;
 
 // IBL
 uniform samplerCube irradianceMap;
@@ -55,8 +57,8 @@ uniform samplerCube prefilterMap;
 uniform sampler2D brdfLUT;
 
 // Lights
-uniform vec3 lightPositions[4];
-uniform vec3 lightColors[4];
+uniform vec3 lightPositions[5];
+uniform vec3 lightColors[5];
 uniform vec3 viewPos;
 uniform bool lightSource;
 
@@ -72,28 +74,21 @@ vec3 fresnelSchlickRoughness(float cosTheta, vec3 F0, float roughness);
 void main()
 {
 	// material properties
-	vec3 albedo = pow(texture(albedoMap, fs_in.TexCoords).rgb, vec3(2.2));
-	float metallic = texture(metallicMap, fs_in.TexCoords).r;
-	float roughness = texture(roughnessMap, fs_in.TexCoords).r;
-	float ao = texture(aoMap, fs_in.TexCoords).r;
+	vec3 albedo = (texture_none ? albedoF : pow(texture(albedoMap, fs_in.TexCoords).rgb, vec3(2.2)));
+	float metallic = (texture_none ? metallicF : texture(metallicMap, fs_in.TexCoords).r);
+	float roughness = (texture_none ? roughnessF : texture(roughnessMap, fs_in.TexCoords).r);// (roughnessTexture ? texture(roughnessMap, fs_in.TexCoords).r : roughnessF));
+	float ao = (texture_none ? aoF : (aoTexture ? texture(aoMap, fs_in.TexCoords).r : aoF));
 	
-	vec3 N = getNormalFromMap(); // Get normals from map
-	//vec3 N = fs_in.Normal;
+	vec3 N = (texture_none ? fs_in.Normal : getNormalFromMap()); // Get normals from map
 	vec3 V = normalize(viewPos - fs_in.WorldPos); // view direction
 	vec3 R = reflect(-V, N);
-
-	// Material maps
-	//vec3 albedo = pow(texture(albedoMap, fs_in.TexCoords).rgb, vec3(2.2));
-	//float metallic = texture(metallicMap, fs_in.TexCoords).r;
-	//float roughness = texture(roughnessMap, fs_in.TexCoords).r;
-	//float ao = texture(aoMap, fs_in.TexCoords).r;
 
 	vec3 F0 = vec3(0.04); // surface reflection at 0 incidence
 	F0 = mix(F0, albedo, metallic);
 
 	// reflectance equation
 	vec3 Lo = vec3(0.0);
-	for (int i = 0; i < 4; ++i)
+	for (int i = 0; i < 5; ++i)
 	{
 		vec3 L = normalize(lightPositions[i] - fs_in.WorldPos); // light direction
 		vec3 H = normalize(V + L); // halfway direction
@@ -138,7 +133,7 @@ void main()
 	vec3 specular = prefilteredColor * (F * envBRDF.x + envBRDF.y);
 
 	//vec3 ambient = vec3(0.03) * albedo * ao;
-	vec3 ambient = (kD * diffuse + specular) * (aoTexture ? ao : aoF);
+	vec3 ambient = (kD * diffuse + specular) * ao;
 	vec3 color = ambient + Lo;
 
 	color = color / (color + vec3(1.0)); // HDR tonemapping
@@ -150,7 +145,7 @@ void main()
 
 vec3 getNormalFromMap()
 {
-	vec3 tangentNormal = texture(normalMap, fs_in.TexCoords).xyz * 2.0 - 1.0;
+	vec3 tangentNormal = texture(normalMap, fs_in.TexCoords).xyz * 2.0 - 0.5;
 
 	vec3 Q1 = dFdx(fs_in.WorldPos);
 	vec3 Q2 = dFdy(fs_in.WorldPos);
@@ -176,7 +171,7 @@ float DistributionGGX(vec3 N, vec3 H, float roughness)
 	float denom = (NdotH2 * (a2 - 1.0) + 1.0);
 	denom = PI * denom * denom;
 
-	return nom / max(denom, 0.001); // prevent divide by 0 for (roughness = 0.0) and (NdotH = 1.0)
+	return nom / denom; // prevent divide by 0 for (roughness = 0.0) and (NdotH = 1.0)
 }
 
 float GeometrySchlickGGX(float NdotV, float roughness)

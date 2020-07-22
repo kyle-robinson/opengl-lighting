@@ -9,22 +9,22 @@ glm::mat4 Camera::GetViewMatrix()
 void Camera::ProcessKeyboard(Camera_Movement direction, float deltaTime)
 {
     float velocity = MovementSpeed * deltaTime;
-    glm::vec3 bobbing = glm::vec3(0.0, sin(glfwGetTime() * 10.0f) * 0.025, 0.0);
+    //glm::vec3 bobbing = glm::vec3(0.0, sin(glfwGetTime() * 10.0f) * 0.025, 0.0);
     if (direction == FORWARD)
-        Position += Front * velocity + bobbing;
+        Position += Front * velocity;// +bobbing;
     if (direction == BACKWARD)
-        Position -= Front * velocity + bobbing;
+        Position -= Front * velocity;// + bobbing;
     if (direction == LEFT)
-        Position -= Right * velocity + bobbing;
+        Position -= Right * velocity;// + bobbing;
     if (direction == RIGHT)
-        Position += Right * velocity + bobbing;
+        Position += Right * velocity;// + bobbing;
 
-    //Position.y = 0.5f;
+    Position.y = 0.5f;
     
-    if (Position.y < 0.0)
+    /*if (Position.y < 0.0)
         Position.y = 0.0;
     if (Position.y > 1.0)
-        Position.y = 1.0;
+        Position.y = 1.0;*/
 }
 
 void Camera::ProcessMouseMovement(float xoffset, float yoffset, GLboolean constrainPitch)

@@ -2,7 +2,6 @@
 #include <GLFW/glfw3.h>
 #include "stb_image.h"
 
-#include <irrKlang/irrKlang.h>
 #include "IMGUI/imgui.h"
 #include "IMGUI/imgui_impl_glfw_gl3.h"
 
@@ -14,25 +13,15 @@
 #include <GLM/gtc/type_ptr.hpp>
 
 #include <iostream>
+#include <map>
 
-const unsigned int SCR_WIDTH = 1920;
-const unsigned int SCR_HEIGHT = 1080;
+const unsigned int SCR_WIDTH = 1280;
+const unsigned int SCR_HEIGHT = 720;
 
 // Uniforms
-//glm::vec3 albedo(0.5f, 0.0f, 0.0f);
-glm::vec3 lightPos(-20.0f, 0.0f, -20.0f);
-float albedoColor = 4.0;
-
-// Audio
-irrklang::ISoundEngine* SoundEngine;
-//irrklang::ISound* Music;
-irrklang::ISound* Walking;
-
-float musicVolume = 0.1f;
-float walkingVolume = 4.0f;
-
-bool musicIsPaused = true;
-bool playing = true;
+glm::vec3 albedoF(0.5f, 0.0f, 0.0f);
+glm::vec3 lightPos(0.0f, 0.0f, -20.0f);
+float aoF = 1.0f;
 
 // Camera
 Camera camera(glm::vec3(0.0f, 0.5f, 5.0f));
@@ -263,14 +252,30 @@ int main()
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	// Load textures
-	unsigned int brickAlbedo = loadTexture("res/textures/red_brick/bricks2.jpg", true);
-	unsigned int brickSpecular = loadTexture("res/textures/red_brick/bricks2_disp.jpg", true);
-	unsigned int brickNormal = loadTexture("res/textures/red_brick/bricks2_normal.jpg", true);
-	
+	stbi_set_flip_vertically_on_load(false);
+
 	shader.Bind();
 	shader.SetUniform1i("diffuseMap", 0);
 	shader.SetUniform1i("specularMap", 1);
 	shader.SetUniform1i("normalMap", 2);
+	
+	unsigned int sandAlbedo = loadTexture("res/textures/sand/albedo.jpg", true);
+	unsigned int sandSpecular = loadTexture("res/textures/sand/ao.jpg", true);
+	unsigned int sandNormal = loadTexture("res/textures/sand/normal.jpg", true);
+	
+	pbrShader.Bind();
+	pbrShader.SetUniform1i("irradianceMap", 0);
+	pbrShader.SetUniform1i("prefilterMap", 1);
+	pbrShader.SetUniform1i("brdfLUT", 2);
+
+	pbrShader.SetUniform1i("albedoMap", 3);
+	pbrShader.SetUniform1i("normalMap", 4);
+	pbrShader.SetUniform1i("metallicMap", 5);
+	pbrShader.SetUniform1i("roughnessMap", 6);
+	pbrShader.SetUniform1i("aoMap", 7);
+
+	pbrShader.SetUniform3f("albedoF", albedoF);
+	pbrShader.SetUniform1f("aoF", aoF);
 
 	unsigned int goldAlbedo = loadTexture("res/textures/gold/albedo.png", true);
 	unsigned int goldNormal = loadTexture("res/textures/gold/normal.png", true);
@@ -301,44 +306,77 @@ int main()
 	unsigned int graniteRoughness = loadTexture("res/textures/granite/roughness.png", true);
 	unsigned int graniteAo = loadTexture("res/textures/granite/ao.png", true);
 
-	unsigned int plasticAlbedoBlack = loadTexture("res/textures/plastic/albedo_black.png", true);
-	unsigned int plasticAlbedoBlue = loadTexture("res/textures/plastic/albedo_blue.png", true);
-	unsigned int plasticAlbedoGray = loadTexture("res/textures/plastic/albedo_gray.png", true);
-	unsigned int plasticAlbedoGreen = loadTexture("res/textures/plastic/albedo_green.png", true);
-	unsigned int plasticAlbedoPink = loadTexture("res/textures/plastic/albedo_pink.png", true);
-	unsigned int plasticAlbedoRed = loadTexture("res/textures/plastic/albedo_red.png", true);
-	unsigned int plasticAlbedoWhite = loadTexture("res/textures/plastic/albedo_white.png", true);
-	unsigned int plasticAlbedoYellow = loadTexture("res/textures/plastic/albedo_yellow.png", true);
-	unsigned int plasticNormal = loadTexture("res/textures/plastic/normal.png", true);
-	unsigned int plasticMetallic = loadTexture("res/textures/plastic/metallic.png", true);
-	unsigned int plasticRoughness = loadTexture("res/textures/plastic/roughness.png", true);
-	unsigned int plasticAo = loadTexture("res/textures/plastic/ao.png", true);
+	unsigned int titaniumAlbedo = loadTexture("res/textures/titanium_scuffed/albedo.png", true);
+	unsigned int titaniumNormal = loadTexture("res/textures/titanium_scuffed/normal.png", true);
+	unsigned int titaniumMetallic = loadTexture("res/textures/titanium_scuffed/metallic.png", true);
+	unsigned int titaniumRoughness = loadTexture("res/textures/titanium_scuffed/roughness.png", true);
 
-	pbrShader.Bind();
-	pbrShader.SetUniform1i("irradianceMap", 0);
-	pbrShader.SetUniform1i("prefilterMap", 1);
-	pbrShader.SetUniform1i("brdfLUT", 2);
-	
-	pbrShader.SetUniform1i("albedoMap", 3);
-	pbrShader.SetUniform1i("normalMap", 4);
-	pbrShader.SetUniform1i("metallicMap", 5);
-	pbrShader.SetUniform1i("roughnessMap", 6);
-	pbrShader.SetUniform1i("aoMap", 7);
-	
-	//pbrShader.SetUniform3f("albedo", albedo);
-	pbrShader.SetUniform1f("aoF", 1.0f);
+	unsigned int pirateAlbedo = loadTexture("res/textures/pirate_gold/albedo.png", true);
+	unsigned int pirateNormal = loadTexture("res/textures/pirate_gold/normal.png", true);
+	unsigned int pirateMetallic = loadTexture("res/textures/pirate_gold/metallic.png", true);
+	unsigned int pirateRoughness = loadTexture("res/textures/pirate_gold/roughness.png", true);
+	unsigned int pirateAo = loadTexture("res/textures/pirate_gold/ao.png", true);
+
+	unsigned int brickAlbedo = loadTexture("res/textures/bricks/albedo.png", true);
+	unsigned int brickNormal = loadTexture("res/textures/bricks/normal.png", true);
+	unsigned int brickMetallic = loadTexture("res/textures/bricks/metallic.psd", true);
+	//unsigned int brickRoughness = loadTexture("res/textures/bricks/roughness.png", true);
+	unsigned int brickAo = loadTexture("res/textures/bricks/ao.png", true);
+
+	unsigned int dustyAlbedo = loadTexture("res/textures/dusty/albedo.png", true);
+	unsigned int dustyNormal = loadTexture("res/textures/dusty/normal.png", true);
+	unsigned int dustyMetallic = loadTexture("res/textures/dusty/metallic.png", true);
+	unsigned int dustyRoughness = loadTexture("res/textures/dusty/roughness.png", true);
+	unsigned int dustyAo = loadTexture("res/textures/dusty/ao.png", true);
+
+	unsigned int grassAlbedo = loadTexture("res/textures/grass/albedo.png", true);
+	unsigned int grassNormal = loadTexture("res/textures/grass/normal.png", true);
+	unsigned int grassMetallic = loadTexture("res/textures/grass/metallic.png", true);
+	unsigned int grassRoughness = loadTexture("res/textures/grass/roughness.png", true);
+	unsigned int grassAo = loadTexture("res/textures/grass/ao.png", true);
+
+	unsigned int ironAlbedo = loadTexture("res/textures/iron/albedo.png", true);
+	unsigned int ironNormal = loadTexture("res/textures/iron/normal.png", true);
+	unsigned int ironMetallic = loadTexture("res/textures/iron/metallic.png", true);
+	unsigned int ironRoughness = loadTexture("res/textures/iron/roughness.png", true);
+
+	unsigned int paperAlbedo = loadTexture("res/textures/paper/albedo.png", true);
+	unsigned int paperNormal = loadTexture("res/textures/paper/normal.png", true);
+	unsigned int paperMetallic = loadTexture("res/textures/paper/metallic.psd", true);
+	//unsigned int paperRoughness = loadTexture("res/textures/paper/roughness.png", true);
+	unsigned int paperAo = loadTexture("res/textures/paper/ao.png", true);
+
+	unsigned int shoreAlbedo = loadTexture("res/textures/shoreline/albedo.png", true);
+	unsigned int shoreNormal = loadTexture("res/textures/shoreline/normal.png", true);
+	unsigned int shoreMetallic = loadTexture("res/textures/shoreline/metallic.png", true);
+	unsigned int shoreRoughness = loadTexture("res/textures/shoreline/roughness.png", true);
+	unsigned int shoreAo = loadTexture("res/textures/shoreline/ao.png", true);
+
+	unsigned int steelAlbedo = loadTexture("res/textures/steel/albedo.png", true);
+	unsigned int steelNormal = loadTexture("res/textures/steel/normal.png", true);
+	unsigned int steelMetallic = loadTexture("res/textures/steel/metallic.psd", true);
+	//unsigned int steelRoughness = loadTexture("res/textures/steel/roughness.png", true);
+	unsigned int steelAo = loadTexture("res/textures/steel/ao.png", true);
+
+	unsigned int barkAlbedo = loadTexture("res/textures/bark/albedo.png", true);
+	unsigned int barkNormal = loadTexture("res/textures/bark/normal.png", true);
+	unsigned int barkMetallic = loadTexture("res/textures/bark/metallic.png", true);
+	unsigned int barkRoughness = loadTexture("res/textures/bark/roughness.png", true);
+	unsigned int barkAo = loadTexture("res/textures/bark/ao.png", true);
 
 	backgroundShader.Bind();
 	backgroundShader.SetUniform1i("environmentMap", 0);
 
 	glm::vec3 lightPositions[] = {
-		glm::vec3(-10.0f,  10.0f, 10.0f),
-		glm::vec3(10.0f,  10.0f, 10.0f),
-		glm::vec3(-10.0f, -10.0f, 10.0f),
-		glm::vec3(10.0f, -10.0f, 10.0f),
+		glm::vec3(-7.5f,  7.5f, 7.5f),
+		glm::vec3(7.5f,  7.5f, 7.5f),
+		glm::vec3(-7.5f, -7.5f, 7.5f),
+		glm::vec3(7.5f, -7.5f, 7.5f),
+		glm::vec3(0.0f, 0.0f, -20.0f)
 	};
 
 	glm::vec3 lightColors[] = {
+		glm::vec3(300.0f),
 		glm::vec3(300.0f),
 		glm::vec3(300.0f),
 		glm::vec3(300.0f),
@@ -365,7 +403,7 @@ int main()
 	backgroundShader.Bind();
 	backgroundShader.SetUniformMatrix4fv("projection", projection);
 
-	// Configure  the viewport to theoriginal framebuffer's screen dimensions
+	// Configure  the viewport to the original framebuffer's screen dimensions
 	int scrWidth, scrHeight;
 	glfwGetFramebufferSize(window, &scrWidth,  &scrHeight);
 	glViewport(0, 0, scrWidth, scrHeight);
@@ -385,20 +423,6 @@ int main()
 
 		processInput(window);
 
-		if (musicIsPaused)
-		{
-			Walking->setIsPaused(true);
-			playing = false;
-		}
-		else if (!musicIsPaused && !playing)
-		{
-			Walking->setIsPaused(false);
-			playing = true;
-		}
-
-		//Music->setVolume(musicVolume);
-		Walking->setVolume(walkingVolume);
-
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -413,13 +437,13 @@ int main()
 		shader.SetUniform3f("viewPos", camera.Position);
 		shader.SetUniform3f("lightPos", lightPos);
 
-		glActiveTexture(GL_TEXTURE0); glBindTexture(GL_TEXTURE_2D, brickAlbedo);
-		glActiveTexture(GL_TEXTURE1); glBindTexture(GL_TEXTURE_2D, brickSpecular);
-		glActiveTexture(GL_TEXTURE2); glBindTexture(GL_TEXTURE_2D, brickNormal);
+		glActiveTexture(GL_TEXTURE0); glBindTexture(GL_TEXTURE_2D, sandAlbedo);
+		glActiveTexture(GL_TEXTURE1); glBindTexture(GL_TEXTURE_2D, sandSpecular);
+		glActiveTexture(GL_TEXTURE2); glBindTexture(GL_TEXTURE_2D, sandNormal);
 
-		model = glm::translate(model, glm::vec3(0.0f, -12.5f, 0.0f));
+		model = glm::translate(model, glm::vec3(0.0f, -10.0f, 0.0f));
 		model = glm::rotate(model, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-		model = glm::scale(model, glm::vec3(20.0f));
+		model = glm::scale(model, glm::vec3(200.0f, 200.0f, 200.0f));
 		shader.SetUniformMatrix4fv("model", model);
 		renderQuadNormal();
 
@@ -427,14 +451,17 @@ int main()
 		pbrShader.Bind();
 		pbrShader.SetUniformMatrix4fv("view", view);
 		pbrShader.SetUniform3f("viewPos", camera.Position);
-		//pbrShader.SetUniform3f("albedo", albedo);
+		pbrShader.SetUniform3f("albedoF", albedoF);
+		pbrShader.SetUniform1f("aoF", aoF);
 		pbrShader.SetUniform1i("lightSource", 0);
 
 		glActiveTexture(GL_TEXTURE0); glBindTexture(GL_TEXTURE_CUBE_MAP, irradianceMap);
 		glActiveTexture(GL_TEXTURE1); glBindTexture(GL_TEXTURE_CUBE_MAP, prefilterMap);
 		glActiveTexture(GL_TEXTURE2); glBindTexture(GL_TEXTURE_2D, brdfLUTTexture);
 
-		// gold
+		// 1.0 - Render textured spheres
+			// left wall
+				// gold
 		pbrShader.SetUniform1i("aoTexture", 0);
 		glActiveTexture(GL_TEXTURE3); glBindTexture(GL_TEXTURE_2D, goldAlbedo);
 		glActiveTexture(GL_TEXTURE4); glBindTexture(GL_TEXTURE_2D, goldNormal);
@@ -442,11 +469,11 @@ int main()
 		glActiveTexture(GL_TEXTURE6); glBindTexture(GL_TEXTURE_2D, goldRoughness);
 
 		model = glm::mat4(1.0f);
-		model = glm::translate(model, glm::vec3(-5.0f, 0.0f, 2.0f));
+		model = glm::translate(model, glm::vec3(-10.0f, 0.0f, 2.5f));
 		pbrShader.SetUniformMatrix4fv("model", model);
 		renderSphere();
 
-		// alien metal
+				// alien metal
 		pbrShader.SetUniform1i("aoTexture", 1);
 		glActiveTexture(GL_TEXTURE3); glBindTexture(GL_TEXTURE_2D, alienAlbedo);
 		glActiveTexture(GL_TEXTURE4); glBindTexture(GL_TEXTURE_2D, alienNormal);
@@ -455,12 +482,11 @@ int main()
 		glActiveTexture(GL_TEXTURE7); glBindTexture(GL_TEXTURE_2D, alienAo);
 
 		model = glm::mat4(1.0f);
-		model = glm::translate(model, glm::vec3(-2.5f, 0.0f, 2.0f));
+		model = glm::translate(model, glm::vec3(-10.0f, 0.0f, 5.0f));
 		pbrShader.SetUniformMatrix4fv("model", model);
 		renderSphere();
 
-		// limestone
-		pbrShader.SetUniform1i("aoTexture", 1);
+				// limestone
 		glActiveTexture(GL_TEXTURE3); glBindTexture(GL_TEXTURE_2D, limestoneAlbedo);
 		glActiveTexture(GL_TEXTURE4); glBindTexture(GL_TEXTURE_2D, limestoneNormal);
 		glActiveTexture(GL_TEXTURE5); glBindTexture(GL_TEXTURE_2D, limestoneMetallic);
@@ -468,11 +494,11 @@ int main()
 		glActiveTexture(GL_TEXTURE7); glBindTexture(GL_TEXTURE_2D, limestoneAo);
 
 		model = glm::mat4(1.0f);
-		model = glm::translate(model, glm::vec3(0.0f, 0.0f, 2.0f));
+		model = glm::translate(model, glm::vec3(-10.0f, 0.0f, 7.5f));
 		pbrShader.SetUniformMatrix4fv("model", model);
 		renderSphere();
 
-		// wood
+				// wood
 		glActiveTexture(GL_TEXTURE3); glBindTexture(GL_TEXTURE_2D, woodAlbedo);
 		glActiveTexture(GL_TEXTURE4); glBindTexture(GL_TEXTURE_2D, woodNormal);
 		glActiveTexture(GL_TEXTURE5); glBindTexture(GL_TEXTURE_2D, woodMetallic);
@@ -480,11 +506,11 @@ int main()
 		glActiveTexture(GL_TEXTURE7); glBindTexture(GL_TEXTURE_2D, woodAo);
 
 		model = glm::mat4(1.0f);
-		model = glm::translate(model, glm::vec3(2.5f, 0.0f, 2.0f));
+		model = glm::translate(model, glm::vec3(-10.0f, 0.0f, 10.0f));
 		pbrShader.SetUniformMatrix4fv("model", model);
 		renderSphere();
 
-		// granite
+				// granite
 		glActiveTexture(GL_TEXTURE3); glBindTexture(GL_TEXTURE_2D, graniteAlbedo);
 		glActiveTexture(GL_TEXTURE4); glBindTexture(GL_TEXTURE_2D, graniteNormal);
 		glActiveTexture(GL_TEXTURE5); glBindTexture(GL_TEXTURE_2D, graniteMetallic);
@@ -492,34 +518,142 @@ int main()
 		glActiveTexture(GL_TEXTURE7); glBindTexture(GL_TEXTURE_2D, graniteAo);
 
 		model = glm::mat4(1.0f);
-		model = glm::translate(model, glm::vec3(5.0f, 0.0f, 2.0f));
+		model = glm::translate(model, glm::vec3(-10.0f, 0.0f, 12.5f));
 		pbrShader.SetUniformMatrix4fv("model", model);
 		renderSphere();
 
-		// plastic
-		glActiveTexture(GL_TEXTURE3);
-		switch ((int)albedoColor)
-		{
-		case 0: glBindTexture(GL_TEXTURE_2D, plasticAlbedoBlack); break;
-		case 1: glBindTexture(GL_TEXTURE_2D, plasticAlbedoBlue); break;
-		case 2: glBindTexture(GL_TEXTURE_2D, plasticAlbedoGray); break;
-		case 3: glBindTexture(GL_TEXTURE_2D, plasticAlbedoGreen); break;
-		case 4: glBindTexture(GL_TEXTURE_2D, plasticAlbedoRed); break;
-		case 5: glBindTexture(GL_TEXTURE_2D, plasticAlbedoWhite); break;
-		case 6: glBindTexture(GL_TEXTURE_2D, plasticAlbedoYellow); break;
-		}
-		glActiveTexture(GL_TEXTURE4); glBindTexture(GL_TEXTURE_2D, plasticNormal);
-		glActiveTexture(GL_TEXTURE5); glBindTexture(GL_TEXTURE_2D, plasticMetallic);
-		glActiveTexture(GL_TEXTURE6); glBindTexture(GL_TEXTURE_2D, plasticRoughness);
-		glActiveTexture(GL_TEXTURE7); glBindTexture(GL_TEXTURE_2D, plasticAo);
+			//back wall
+				// titanium
+		pbrShader.SetUniform1i("aoTexture", 0);
+		glActiveTexture(GL_TEXTURE3); glBindTexture(GL_TEXTURE_2D, titaniumAlbedo);
+		glActiveTexture(GL_TEXTURE4); glBindTexture(GL_TEXTURE_2D, titaniumNormal);
+		glActiveTexture(GL_TEXTURE5); glBindTexture(GL_TEXTURE_2D, titaniumMetallic);
+		glActiveTexture(GL_TEXTURE6); glBindTexture(GL_TEXTURE_2D, titaniumRoughness);
 
-		// 1 - render rows * columns of spheres
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(-5.0f, 0.0f, 15.0f));
+		pbrShader.SetUniformMatrix4fv("model", model);
+		renderSphere();
+
+				// pirate gold
+		pbrShader.SetUniform1i("aoTexture", 1);
+		glActiveTexture(GL_TEXTURE3); glBindTexture(GL_TEXTURE_2D, pirateAlbedo);
+		glActiveTexture(GL_TEXTURE4); glBindTexture(GL_TEXTURE_2D, pirateNormal);
+		glActiveTexture(GL_TEXTURE5); glBindTexture(GL_TEXTURE_2D, pirateMetallic);
+		glActiveTexture(GL_TEXTURE6); glBindTexture(GL_TEXTURE_2D, pirateRoughness);
+		glActiveTexture(GL_TEXTURE7); glBindTexture(GL_TEXTURE_2D, pirateAo);
+
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(-2.5f, 0.0f, 15.0f));
+		pbrShader.SetUniformMatrix4fv("model", model);
+		renderSphere();
+
+				// bricks
+		glActiveTexture(GL_TEXTURE3); glBindTexture(GL_TEXTURE_2D, brickAlbedo);
+		glActiveTexture(GL_TEXTURE4); glBindTexture(GL_TEXTURE_2D, brickNormal);
+		glActiveTexture(GL_TEXTURE5); glBindTexture(GL_TEXTURE_2D, brickMetallic);
+		glActiveTexture(GL_TEXTURE6); glBindTexture(GL_TEXTURE_2D, 0);
+		glActiveTexture(GL_TEXTURE7); glBindTexture(GL_TEXTURE_2D, brickAo);
+
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(0.0f, 0.0f, 15.0f));
+		pbrShader.SetUniformMatrix4fv("model", model);
+		renderSphere();
+
+				// dusty
+		glActiveTexture(GL_TEXTURE3); glBindTexture(GL_TEXTURE_2D, dustyAlbedo);
+		glActiveTexture(GL_TEXTURE4); glBindTexture(GL_TEXTURE_2D, dustyNormal);
+		glActiveTexture(GL_TEXTURE5); glBindTexture(GL_TEXTURE_2D, dustyMetallic);
+		glActiveTexture(GL_TEXTURE6); glBindTexture(GL_TEXTURE_2D, dustyRoughness);
+		glActiveTexture(GL_TEXTURE7); glBindTexture(GL_TEXTURE_2D, dustyAo);
+
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(2.5f, 0.0f, 15.0f));
+		pbrShader.SetUniformMatrix4fv("model", model);
+		renderSphere();
+
+				// grass
+		glActiveTexture(GL_TEXTURE3); glBindTexture(GL_TEXTURE_2D, grassAlbedo);
+		glActiveTexture(GL_TEXTURE4); glBindTexture(GL_TEXTURE_2D, grassNormal);
+		glActiveTexture(GL_TEXTURE5); glBindTexture(GL_TEXTURE_2D, grassMetallic);
+		glActiveTexture(GL_TEXTURE6); glBindTexture(GL_TEXTURE_2D, grassRoughness);
+		glActiveTexture(GL_TEXTURE7); glBindTexture(GL_TEXTURE_2D, grassAo);
+
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(5.0f, 0.0f, 15.0f));
+		pbrShader.SetUniformMatrix4fv("model", model);
+		renderSphere();
+
+			// right wall
+				// iron
+		pbrShader.SetUniform1i("aoTexture", 0);
+		glActiveTexture(GL_TEXTURE3); glBindTexture(GL_TEXTURE_2D, ironAlbedo);
+		glActiveTexture(GL_TEXTURE4); glBindTexture(GL_TEXTURE_2D, ironNormal);
+		glActiveTexture(GL_TEXTURE5); glBindTexture(GL_TEXTURE_2D, ironMetallic);
+		glActiveTexture(GL_TEXTURE6); glBindTexture(GL_TEXTURE_2D, ironRoughness);
+
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(10.0f, 0.0f, 2.5f));
+		pbrShader.SetUniformMatrix4fv("model", model);
+		renderSphere();
+
+				// paper
+		pbrShader.SetUniform1i("aoTexture", 1);
+		glActiveTexture(GL_TEXTURE3); glBindTexture(GL_TEXTURE_2D, paperAlbedo);
+		glActiveTexture(GL_TEXTURE4); glBindTexture(GL_TEXTURE_2D, paperNormal);
+		glActiveTexture(GL_TEXTURE5); glBindTexture(GL_TEXTURE_2D, paperMetallic);
+		glActiveTexture(GL_TEXTURE6); glBindTexture(GL_TEXTURE_2D, 0);
+		glActiveTexture(GL_TEXTURE7); glBindTexture(GL_TEXTURE_2D, paperAo);
+
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(10.0f, 0.0f, 5.0f));
+		pbrShader.SetUniformMatrix4fv("model", model);
+		renderSphere();
+
+				// shore
+		glActiveTexture(GL_TEXTURE3); glBindTexture(GL_TEXTURE_2D, shoreAlbedo);
+		glActiveTexture(GL_TEXTURE4); glBindTexture(GL_TEXTURE_2D, shoreNormal);
+		glActiveTexture(GL_TEXTURE5); glBindTexture(GL_TEXTURE_2D, shoreMetallic);
+		glActiveTexture(GL_TEXTURE6); glBindTexture(GL_TEXTURE_2D, shoreRoughness);
+		glActiveTexture(GL_TEXTURE7); glBindTexture(GL_TEXTURE_2D, shoreAo);
+
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(10.0f, 0.0f, 7.5f));
+		pbrShader.SetUniformMatrix4fv("model", model);
+		renderSphere();
+
+				// steel
+		glActiveTexture(GL_TEXTURE3); glBindTexture(GL_TEXTURE_2D, steelAlbedo);
+		glActiveTexture(GL_TEXTURE4); glBindTexture(GL_TEXTURE_2D, steelNormal);
+		glActiveTexture(GL_TEXTURE5); glBindTexture(GL_TEXTURE_2D, steelMetallic);
+		glActiveTexture(GL_TEXTURE6); glBindTexture(GL_TEXTURE_2D, 0);
+		glActiveTexture(GL_TEXTURE7); glBindTexture(GL_TEXTURE_2D, steelAo);
+
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(10.0f, 0.0f, 10.0f));
+		pbrShader.SetUniformMatrix4fv("model", model);
+		renderSphere();
+
+				// bark
+		glActiveTexture(GL_TEXTURE3); glBindTexture(GL_TEXTURE_2D, barkAlbedo);
+		glActiveTexture(GL_TEXTURE4); glBindTexture(GL_TEXTURE_2D, barkNormal);
+		glActiveTexture(GL_TEXTURE5); glBindTexture(GL_TEXTURE_2D, barkMetallic);
+		glActiveTexture(GL_TEXTURE6); glBindTexture(GL_TEXTURE_2D, barkRoughness);
+		glActiveTexture(GL_TEXTURE7); glBindTexture(GL_TEXTURE_2D, barkAo);
+
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(10.0f, 0.0f, 12.5f));
+		pbrShader.SetUniformMatrix4fv("model", model);
+		renderSphere();
+
+		// 2.0 - render rows * columns of spheres
+		pbrShader.SetUniform1i("texture_none", 1);
 		for (int row = 0; row < nrRows; ++row)
 		{	
-			//pbrShader.SetUniform1f("metallic", (float)row / (float)nrRows);
+			pbrShader.SetUniform1f("metallicF", (float)row / (float)nrRows);
 			for (int col = 0; col < nrColumns; ++col)
 			{
-				//pbrShader.SetUniform1f("roughness", glm::clamp((float)col / (float)nrColumns, 0.05f, 1.0f));
+				pbrShader.SetUniform1f("roughnessF", glm::clamp((float)col / (float)nrColumns, 0.05f, 1.0f));
 
 				model = glm::mat4(1.0f);
 				model = glm::translate(model, glm::vec3(
@@ -531,8 +665,9 @@ int main()
 				renderSphere();
 			}
 		}
+		pbrShader.SetUniform1i("texture_none", 0);
 
-		// 2 - render light sources
+		// 3.0 - render light sources
 		pbrShader.SetUniform1i("lightSource", 1);
 		for (unsigned int i = 0; i < sizeof(lightPositions) / sizeof(lightPositions[0]); ++i)
 		{
@@ -553,7 +688,7 @@ int main()
 		pbrShader.SetUniformMatrix4fv("model", model);
 		renderSphere();
 
-		// 3 - render cubemap
+		// 4.0 - render cubemap
 		backgroundShader.Bind();
 		backgroundShader.SetUniformMatrix4fv("view", view);
 		glActiveTexture(GL_TEXTURE0);
@@ -571,14 +706,8 @@ int main()
 		{
 			if (ImGui::CollapsingHeader("Rendering"))
 			{
-				//ImGui::SliderFloat3("Albedo", &albedo.x, 0.0f, 1.0f, "%.1f", 1);
-				ImGui::SliderFloat("Albedo", &albedoColor, 0.0f, 6.0f, "%1.0f");
-			}
-			
-			if (ImGui::CollapsingHeader("Audio"))
-			{
-				//ImGui::SliderFloat("Music", &musicVolume, 0.0f, 1.0f, "%.1f");
-				ImGui::SliderFloat("Walking", &walkingVolume, 0.0f, 5.0f, "%1.f");
+				ImGui::SliderFloat3("Albedo", &albedoF.x, 0.0f, 1.0f, "%.1f", 1);
+				ImGui::SliderFloat("AO", &aoF, 0.0f, 1.0f, "%.1f", 1);
 			}
 			
 			if (ImGui::CollapsingHeader("Application Info"))
@@ -621,10 +750,6 @@ int main()
 	glDeleteTextures(1, &prefilterMap);
 	glDeleteTextures(1, &brdfLUTTexture);
 
-	SoundEngine->drop();
-	//Music->drop();
-	Walking->drop();
-
 	ImGui_ImplGlfwGL3_Shutdown();
 	ImGui::DestroyContext();
 	glfwTerminate();
@@ -643,7 +768,7 @@ GLFWwindow* InitWindow()
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-	GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "PBR & Specular IBL", glfwGetPrimaryMonitor(), NULL);
+	GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "PBR & Speuclar IBL", NULL, NULL);
 	if (window == NULL)
 	{
 		std::cout << "Failed to create GLFW window." << std::endl;
@@ -671,10 +796,6 @@ GLFWwindow* InitWindow()
 	glDepthFunc(GL_LEQUAL);
 	
 	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
-
-	SoundEngine = irrklang::createIrrKlangDevice();
-	//Music = Music = SoundEngine->play2D("res/audio/Gloom.mp3", true, false, true);
-	Walking = SoundEngine->play2D("res/audio/walking.mp3", true, true, true);
 
 	return window;
 }
@@ -715,31 +836,13 @@ void processInput(GLFWwindow* window)
 
 	// Camera Movement
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-	{
 		camera.ProcessKeyboard(FORWARD, deltaTime);
-		musicIsPaused = false;
-	}
 	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-	{
 		camera.ProcessKeyboard(BACKWARD, deltaTime);
-		musicIsPaused = false;
-	}
 	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-	{
 		camera.ProcessKeyboard(LEFT, deltaTime);
-		musicIsPaused = false;
-	}
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-	{
 		camera.ProcessKeyboard(RIGHT, deltaTime);
-		musicIsPaused = false;
-	}
-
-	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_RELEASE &&
-		glfwGetKey(window, GLFW_KEY_A) == GLFW_RELEASE &&
-		glfwGetKey(window, GLFW_KEY_S) == GLFW_RELEASE &&
-		glfwGetKey(window, GLFW_KEY_D) == GLFW_RELEASE)
-		musicIsPaused = true;
 
 	// Polygon Mode
 	if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS)
@@ -1028,10 +1131,10 @@ void renderQuadNormal()
 		glm::vec3 pos4(1.0, 1.0, 0.0);
 
 		// texture coords
-		glm::vec2 uv1(0.0, 1.0);
+		glm::vec2 uv1(0.0, 20.0);
 		glm::vec2 uv2(0.0, 0.0);
-		glm::vec2 uv3(1.0, 0.0);
-		glm::vec2 uv4(1.0, 1.0);
+		glm::vec2 uv3(20.0, 0.0);
+		glm::vec2 uv4(20.0, 20.0);
 
 		// normal vector
 		glm::vec3 nm(0.0, 0.0, 1.0);
