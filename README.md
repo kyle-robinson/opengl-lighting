@@ -2,7 +2,7 @@
 Complete collection of projects relating to lighting in OpenGL, according to the [LearnOpenGL](https://learnopengl.com/) website.
 
 | Intermediate Criteria | Advanced Criteria              |
-| --------------------- |:------------------------------:|
+| :-------------------: |:------------------------------:|
 | Blinn Specularity     | Parallax Mapping               |
 | Bloom                 | Deferred Shading               |
 | Normal Mapping        | Screen-Space Ambient Occlusion |
