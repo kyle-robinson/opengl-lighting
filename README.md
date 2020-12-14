@@ -24,7 +24,6 @@ Complete collection of projects relating to lighting in OpenGL, according to the
 
         Source Code:
                     https://learnopengl.com/
-                    https://github.com/arthurdouillard/water_simulation
                     
         Libraries:
                     https://www.glfw.org/
