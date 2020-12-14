@@ -3,7 +3,7 @@ Complete collection of projects relating to lighting in OpenGL, according to the
 
 *Click image to view playlist on YouTube*
 <a href="https://www.youtube.com/playlist?list=PLn_BYD1M0NFQmf54lreTN8rBPfGNCQ4nC" target="_blank">
-        <img src="https://i.imgur.com/aeYkHGb.jpeg" alt="Water Simulation Thumbnail" border="10" />
+        <img src="https://i.imgur.com/aeYkHGb.jpeg" alt="Shadow Mapping Thumbnail" border="10" />
 </a>
 
 ## List of Features
