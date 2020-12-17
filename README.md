@@ -1,7 +1,7 @@
 # OpenGL Lighting
 Complete collection of projects relating to lighting in OpenGL, according to the [LearnOpenGL](https://learnopengl.com/) website.
 
-*Click image to view playlist on YouTube*
+*- Click image to view playlist on YouTube -*
 <a href="https://www.youtube.com/playlist?list=PLn_BYD1M0NFQmf54lreTN8rBPfGNCQ4nC" target="_blank">
         <img src="https://i.imgur.com/aeYkHGb.jpeg" alt="Shadow Mapping Thumbnail" border="10" />
 </a>
