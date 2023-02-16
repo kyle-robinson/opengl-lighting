@@ -1,4 +1,11 @@
 # OpenGL Lighting
+
+[![MSBuild-Debug](https://github.com/kyle-robinson/opengl-lighting/actions/workflows/msbuild-debug.yml/badge.svg)](https://github.com/kyle-robinson/opengl-lighting/actions/workflows/msbuild-debug.yml)
+&nbsp;
+[![MSBuild-Release](https://github.com/kyle-robinson/opengl-lighting/actions/workflows/msbuild-release.yml/badge.svg)](https://github.com/kyle-robinson/opengl-lighting/actions/workflows/msbuild-release.yml)
+&nbsp;
+[![CodeQL](https://github.com/kyle-robinson/opengl-lighting/actions/workflows/codeql.yml/badge.svg)](https://github.com/kyle-robinson/opengl-lighting/actions/workflows/codeql.yml)
+
 Complete collection of projects relating to lighting in OpenGL, according to the [LearnOpenGL](https://learnopengl.com/) website.
 
 *- Click <a href="https://www.youtube.com/playlist?list=PLn_BYD1M0NFQmf54lreTN8rBPfGNCQ4nC" target="_blank">here</a> to view playlist on YouTube -*
