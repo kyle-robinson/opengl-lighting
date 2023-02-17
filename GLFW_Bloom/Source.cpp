@@ -15,8 +15,8 @@
 
 #include <iostream>
 
-const unsigned int SCR_WIDTH = 1000;
-const unsigned int SCR_HEIGHT = 800;
+const unsigned int SCR_WIDTH = 800;
+const unsigned int SCR_HEIGHT = 600;
 
 bool bloom = true;
 bool bloomKeyPressed = false;
@@ -164,7 +164,7 @@ int main()
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		ImGui_ImplGlfwGL3_NewFrame();
+		//ImGui_ImplGlfwGL3_NewFrame();
 
 		// 1 - Render scene into floating point framebuffer
 		glBindFramebuffer(GL_FRAMEBUFFER, hdrFBO);
@@ -293,7 +293,7 @@ int main()
 		std::cout << "Bloom: " << (bloom ? "on" : "off") << " | Exposure: " << exposure << std::endl;
 
 		// ImGui Window
-		ImGui::Begin("Main Window", NULL, ImGuiWindowFlags_AlwaysAutoResize);
+		/*ImGui::Begin("Main Window", NULL, ImGuiWindowFlags_AlwaysAutoResize);
 		{
 			static int e = 0;
 			if (ImGui::CollapsingHeader("Bloom"))
@@ -340,7 +340,7 @@ int main()
 		}
 		ImGui::End();
 		ImGui::Render();
-		ImGui_ImplGlfwGL3_RenderDrawData(ImGui::GetDrawData());
+		ImGui_ImplGlfwGL3_RenderDrawData(ImGui::GetDrawData());*/
 
 		glfwPollEvents();
 		glfwSwapBuffers(window);

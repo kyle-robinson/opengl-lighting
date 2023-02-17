@@ -15,8 +15,8 @@
 
 #include <iostream>
 
-const unsigned int SCR_WIDTH = 1000;
-const unsigned int SCR_HEIGHT = 800;
+const unsigned int SCR_WIDTH = 1200;
+const unsigned int SCR_HEIGHT = 695;
 float offset = 1.0f;
 
 Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));

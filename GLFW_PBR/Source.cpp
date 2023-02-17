@@ -15,8 +15,8 @@
 #include <iostream>
 #include <map>
 
-const unsigned int SCR_WIDTH = 1280;
-const unsigned int SCR_HEIGHT = 720;
+const unsigned int SCR_WIDTH = 1200;
+const unsigned int SCR_HEIGHT = 695;
 
 // Uniforms
 glm::vec3 albedoF(0.5f, 0.0f, 0.0f);
