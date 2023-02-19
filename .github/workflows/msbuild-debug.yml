@@ -20,6 +20,7 @@ permissions:
 
 jobs:      
   build:
+    name: Windows Debug Build
     runs-on: windows-latest
 
     steps:
