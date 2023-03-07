@@ -39,7 +39,7 @@ The applications relies on the following libraries and APIs to function.
 * GLFW
 * GLES
 * GLM
-* irrklang
+* irrKlang
 
 ### Installing
 
